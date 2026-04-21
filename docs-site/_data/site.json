@@ -3,6 +3,6 @@
   "caption": "Version 1.0 — pre-release workspace copy",
   "phase": "Pre-release",
   "phaseBannerText": "This is a workspace copy of the data schema. The authoritative publication lives on GOV.UK.",
-  "repo": "https://github.com/mf-henri-v2/ds-wip-3"
+  "repo": "https://github.com/mf-henri-v2/ds-wip-3",
   "baseurl": ""
 }
