@@ -1,0 +1,21 @@
+// markdownlint-cli2 configuration
+// Relaxed to match the reality of the published schema text and the docs-site
+// pattern. Each relaxation is commented so future reviewers can tighten them.
+{
+  // MD013: Line length — publication text has long sentences. Turn off.
+  "MD013": false,
+
+  // MD033: Inline HTML — we occasionally use inline HTML (e.g. invisible
+  //        anchors, <sup> for figure numbers). Allow.
+  "MD033": false,
+
+  // MD034: Bare URLs — we sometimes list URLs inline without angle brackets.
+  "MD034": false,
+
+  // MD041: First line in file must be a top-level heading. Our files start
+  //        with a `> [!CAUTION]` admonition, not a heading. Turn off.
+  "MD041": false,
+
+  // MD024: Allow duplicate heading text when in different sections.
+  "MD024": { "siblings_only": true }
+}
