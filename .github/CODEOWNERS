@@ -1,0 +1,16 @@
+# CODEOWNERS for the dvs-data-schema repository
+#
+# These owners are requested for review on every pull request by default.
+# Replace the placeholder handles below with the actual OfDIA / DSIT team
+# handles once the repository has a GitHub organisation. See KNOWN-ISSUES.md
+# (KI-5) for details.
+
+*                                   @ofdia-maintainers
+
+# Publication text — route to policy reviewers as well
+/schema-1.0/**                      @ofdia-maintainers @ofdia-policy
+
+# CI, tooling and site build — route to engineering reviewers
+/.github/**                         @ofdia-maintainers @ofdia-engineering
+/supporting-material/**             @ofdia-maintainers @ofdia-engineering
+/docs-site/**                       @ofdia-maintainers @ofdia-engineering
