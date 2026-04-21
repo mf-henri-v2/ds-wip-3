@@ -39,7 +39,7 @@ jobs:
       - name: Build site
         working-directory: docs-site
         env:
-          BASEURL: ${{ steps.pages.outputs.base_path }}
+          BASEURL: /${{ github.event.repository.name }}
         run: npm run build
       - uses: actions/upload-pages-artifact@v3
         with:
