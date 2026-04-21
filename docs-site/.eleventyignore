@@ -1,0 +1,11 @@
+../node_modules
+node_modules
+../_site
+_site
+../.git
+../.github
+../docs-site/node_modules
+../docs-site/_site
+../docs-site/.eleventy-cache
+.eleventy-cache
+../supporting-material/scripts
