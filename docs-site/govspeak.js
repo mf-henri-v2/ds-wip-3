@@ -87,6 +87,129 @@ function govspeak(md) {
     "</div>"
   );
 
+  // ------------------------------------------------------------------
+  // GitHub-flavoured alert blocks: `> [!CAUTION]`, `> [!WARNING]`,
+  // `> [!NOTE]`, `> [!TIP]`, `> [!IMPORTANT]`.
+  //
+  // On github.com these render as styled call-outs. In the rendered
+  // site we transform them into the GOV.UK Design System equivalents:
+  //   CAUTION / WARNING → govuk-warning-text (the bold "!" chevron box)
+  //   NOTE / TIP / IMPORTANT → govuk-inset-text (left-bar inset)
+  // ------------------------------------------------------------------
+  md.core.ruler.after("block", "govspeak_gh_alerts", (state) => {
+    const tokens = state.tokens;
+    const ALERT_RE =
+      /^\[!(CAUTION|WARNING|NOTE|TIP|IMPORTANT)\][ \t]*(\r?\n|$)/;
+
+    let i = 0;
+    while (i < tokens.length) {
+      if (tokens[i].type !== "blockquote_open") {
+        i++;
+        continue;
+      }
+
+      // Find matching blockquote_close, respecting nesting.
+      let depth = 1;
+      let closeIdx = -1;
+      for (let j = i + 1; j < tokens.length; j++) {
+        if (tokens[j].type === "blockquote_open") depth++;
+        if (tokens[j].type === "blockquote_close") {
+          depth--;
+          if (depth === 0) {
+            closeIdx = j;
+            break;
+          }
+        }
+      }
+      if (closeIdx === -1) {
+        i++;
+        continue;
+      }
+
+      // We expect: blockquote_open, paragraph_open, inline, ...
+      const paraOpenIdx = i + 1;
+      const inlineIdx = i + 2;
+      if (
+        !tokens[paraOpenIdx] ||
+        tokens[paraOpenIdx].type !== "paragraph_open" ||
+        !tokens[inlineIdx] ||
+        tokens[inlineIdx].type !== "inline"
+      ) {
+        i++;
+        continue;
+      }
+
+      const match = tokens[inlineIdx].content.match(ALERT_RE);
+      if (!match) {
+        i++;
+        continue;
+      }
+      const type = match[1];
+
+      // Strip the `[!TYPE]` prefix from the inline content and from the
+      // first text child (so the rendered output skips the marker). We
+      // edit the existing token children in place rather than re-parsing —
+      // re-parsing ends up double-counting the result.
+      tokens[inlineIdx].content = tokens[inlineIdx].content.slice(
+        match[0].length
+      );
+      const children = tokens[inlineIdx].children || [];
+      if (children.length > 0 && children[0].type === "text") {
+        const m = children[0].content.match(/^\[!\w+\][ \t]*/);
+        if (m) children[0].content = children[0].content.slice(m[0].length);
+        if (children[0].content === "") children.shift();
+      }
+      // A softbreak immediately after `[!TYPE]` is the `\n` of `> [!TYPE]\n`
+      // and has no remaining purpose once the marker is gone.
+      if (children.length > 0 && children[0].type === "softbreak") {
+        children.shift();
+      }
+
+      const isWarning = type === "CAUTION" || type === "WARNING";
+      const label = type === "CAUTION" ? "Caution" : "Warning";
+
+      const openHtml = isWarning
+        ? `<div class="govuk-warning-text"><span class="govuk-warning-text__icon" aria-hidden="true">!</span><strong class="govuk-warning-text__text"><span class="govuk-warning-text__assistive">${label}</span> `
+        : '<div class="govuk-inset-text">';
+      const closeHtml = isWarning ? "</strong></div>" : "</div>";
+
+      const mkHtml = (content) => ({
+        type: "html_block",
+        tag: "",
+        attrs: null,
+        map: null,
+        nesting: 0,
+        level: 0,
+        children: null,
+        content,
+        markup: "",
+        info: "",
+        meta: null,
+        block: true,
+        hidden: false,
+      });
+
+      // Replace blockquote_open / blockquote_close with the wrapper HTML.
+      tokens[i] = mkHtml(openHtml);
+      tokens[closeIdx] = mkHtml(closeHtml);
+
+      // For warning-text, strip the inner <p> wrapping so the inline
+      // content sits directly inside <strong> (valid and compact).
+      if (isWarning) {
+        tokens[paraOpenIdx] = mkHtml("");
+        // Find and neutralise the matching paragraph_close before closeIdx.
+        for (let k = inlineIdx + 1; k < closeIdx; k++) {
+          if (tokens[k].type === "paragraph_close") {
+            tokens[k] = mkHtml("");
+            break;
+          }
+        }
+      }
+
+      i = closeIdx + 1;
+    }
+  });
+
   // Add GOV.UK classes to common elements rendered from Markdown.
   function classify(tokens, tag, cls) {
     for (const tok of tokens) {
