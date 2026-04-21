@@ -91,7 +91,6 @@ module.exports = function (eleventyConfig) {
       input: "..",
       output: "_site",
       includes: "docs-site/_includes",
-      layouts: "docs-site/_layouts",
       data: "docs-site/_data",
     },
     markdownTemplateEngine: "liquid",
